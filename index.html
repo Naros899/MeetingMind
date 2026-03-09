@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>MeetingMind</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
@@ -412,6 +412,85 @@
       margin-bottom: 8px;
       font-weight: 500;
     }
+
+    /* ── Responsive ── */
+
+    /* Tablets */
+    @media (min-width: 600px) {
+      main {
+        max-width: 680px;
+        padding: 32px 28px 100px;
+        gap: 20px;
+      }
+
+      header {
+        padding: 24px 28px 22px;
+      }
+
+      .logo-gem { width: 44px; height: 44px; font-size: 22px; border-radius: 12px; }
+      .logo-name { font-size: 22px; }
+      .logo-tag { font-size: 11.5px; }
+
+      .upload-zone { padding: 56px 28px; }
+      .upload-title { font-size: 22px; }
+      .upload-hint { font-size: 14px; }
+
+      .card { padding: 22px; }
+      .result-card { padding: 22px; }
+
+      .tab { font-size: 13.5px; padding: 10px 8px; }
+
+      .prose { font-size: 15px; }
+      .btn-primary { padding: 15px; font-size: 16px; }
+      .btn-outline { padding: 13px; font-size: 15px; }
+      .field input { padding: 13px 15px; }
+    }
+
+    /* Desktop */
+    @media (min-width: 900px) {
+      main {
+        max-width: 740px;
+        padding: 40px 32px 100px;
+      }
+
+      header {
+        padding: 24px 40px 22px;
+      }
+    }
+
+    /* Small phones */
+    @media (max-width: 380px) {
+      header { padding: 16px 14px 14px; gap: 10px; }
+      .logo-gem { width: 34px; height: 34px; font-size: 17px; }
+      .logo-name { font-size: 17px; }
+
+      main { padding: 18px 12px 90px; gap: 14px; }
+
+      .card { padding: 15px; }
+      .result-card { padding: 15px; }
+      .upload-zone { padding: 36px 14px; }
+      .upload-title { font-size: 17px; }
+
+      .tab { font-size: 11px; padding: 7px 4px; }
+      .btn-primary { padding: 12px; font-size: 14px; }
+    }
+
+    /* Touch-friendly tap targets */
+    @media (pointer: coarse) {
+      .btn-mini { padding: 7px 14px; font-size: 12px; }
+      .tab { padding: 10px 6px; min-height: 44px; }
+      .keys-header { min-height: 44px; }
+      .field input { padding: 13px 14px; font-size: 16px; }
+    }
+
+    /* Safe area for notched phones */
+    @supports (padding: env(safe-area-inset-bottom)) {
+      main { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
+      header {
+        padding-left: calc(20px + env(safe-area-inset-left));
+        padding-right: calc(20px + env(safe-area-inset-right));
+      }
+    }
   </style>
 </head>
 <body>
@@ -560,10 +639,23 @@
 /* ────────────────────────────────────────────
    State
 ──────────────────────────────────────────── */
-let keys = { openai: '', anthropic: '' };
+let keys = JSON.parse(localStorage.getItem('mm_keys') || '{"openai":"","anthropic":""}');
 let file = null;
 let results = {};
 const tabNames = ['transcript','summary','nextsteps','email'];
+
+// Restore saved keys into inputs on load
+if (keys.openai || keys.anthropic) {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('openaiKey').value = keys.openai;
+    document.getElementById('anthropicKey').value = keys.anthropic;
+    if (keys.openai && keys.anthropic) {
+      document.getElementById('keysBadge').style.display = 'block';
+      document.getElementById('keysBody').style.display = 'none';
+    }
+    updateBtn();
+  });
+}
 
 /* ────────────────────────────────────────────
    Keys
@@ -578,6 +670,7 @@ function saveKeys() {
   const an = document.getElementById('anthropicKey').value.trim();
   if (!oa || !an) { toast('Please enter both API keys'); return; }
   keys = { openai: oa, anthropic: an };
+  localStorage.setItem('mm_keys', JSON.stringify(keys));
   document.getElementById('keysBadge').style.display = 'block';
   document.getElementById('keysBody').style.display = 'none';
   updateBtn();
