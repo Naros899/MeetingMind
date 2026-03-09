@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>MeetingMind</title>
+  <title>Chronics.ai — Meeting Intelligence</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     :root {
       --bg: #0d0c0b;
@@ -95,7 +96,7 @@
       padding: 18px;
     }
 
-    /* ── API Keys ── */
+    /* ── Settings ── */
     .keys-header {
       display: flex;
       align-items: center;
@@ -134,7 +135,7 @@
       letter-spacing: 0.2px;
     }
 
-    .field input {
+    .field input, .field textarea {
       width: 100%;
       background: var(--surface2);
       border: 1px solid var(--border);
@@ -149,8 +150,26 @@
       -webkit-appearance: none;
     }
 
-    .field input:focus { border-color: var(--gold); }
-    .field input::placeholder { color: var(--text-muted); }
+    .field textarea {
+      resize: vertical;
+      min-height: 120px;
+      line-height: 1.6;
+    }
+
+    .field input:focus, .field textarea:focus { border-color: var(--gold); }
+    .field input::placeholder, .field textarea::placeholder { color: var(--text-muted); }
+
+    .field-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 16px 0;
+    }
+
+    .field-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
 
     /* ── Buttons ── */
     .btn {
@@ -174,6 +193,16 @@
       cursor: not-allowed;
     }
 
+    .btn-send {
+      background: var(--green);
+      color: #fff;
+      width: 100%; padding: 14px;
+      border-radius: 10px; font-size: 15px;
+    }
+
+    .btn-send:hover:not(:disabled) { background: #6a9c6e; }
+    .btn-send:disabled { opacity: 0.35; cursor: not-allowed; }
+
     .btn-outline {
       background: transparent;
       color: var(--text-dim);
@@ -194,11 +223,33 @@
 
     .btn-mini:hover { background: var(--border); color: var(--text); }
 
+    /* ── Input mode toggle ── */
+    .mode-toggle {
+      display: flex; gap: 3px;
+      background: var(--surface);
+      padding: 4px;
+      border-radius: 11px;
+      border: 1px solid var(--border);
+    }
+
+    .mode-btn {
+      flex: 1; padding: 9px 5px;
+      border-radius: 8px; font-size: 13px; font-weight: 500;
+      text-align: center; cursor: pointer;
+      white-space: nowrap; color: var(--text-dim);
+      border: none; background: transparent;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .mode-btn.active { background: var(--surface2); color: var(--gold); }
+
     /* ── Upload zone ── */
     .upload-zone {
       border: 2px dashed var(--border);
       border-radius: var(--radius);
-      padding: 44px 20px;
+      padding: 36px 20px;
       text-align: center;
       cursor: pointer;
       transition: all 0.2s;
@@ -220,17 +271,17 @@
     }
 
     .upload-icon {
-      font-size: 40px; margin-bottom: 14px;
+      font-size: 32px; margin-bottom: 10px;
       display: block;
     }
 
     .upload-title {
       font-family: 'Playfair Display', serif;
-      font-size: 19px; margin-bottom: 7px;
+      font-size: 17px; margin-bottom: 5px;
     }
 
     .upload-hint {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--text-dim);
       line-height: 1.55;
     }
@@ -242,7 +293,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 12px 14px;
-      margin-bottom: 13px;
+      margin-top: 10px;
     }
 
     .file-row-icon { font-size: 22px; flex-shrink: 0; }
@@ -255,6 +306,11 @@
     }
 
     .file-row-size { font-size: 11.5px; color: var(--text-dim); margin-top: 1px; }
+
+    .file-row-remove {
+      background: none; border: none; color: var(--text-muted);
+      cursor: pointer; font-size: 18px; padding: 4px;
+    }
 
     /* ── Progress ── */
     .step-list { display: flex; flex-direction: column; gap: 14px; }
@@ -350,7 +406,22 @@
       padding-top: 2px;
     }
 
-    /* ── Next steps ── */
+    /* ── Key points ── */
+    .kp-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .kp-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 13.5px; line-height: 1.55;
+    }
+
+    .kp-bullet {
+      width: 6px; height: 6px; flex-shrink: 0;
+      background: var(--gold);
+      border-radius: 50%;
+      margin-top: 8px;
+    }
+
+    /* ── Action items ── */
     .steps-list { display: flex; flex-direction: column; gap: 9px; }
 
     .step-item {
@@ -403,7 +474,6 @@
     .hidden { display: none !important; }
     .mt { margin-top: 16px; }
 
-    /* Section titles */
     .section-eyebrow {
       font-size: 11px;
       text-transform: uppercase;
@@ -413,77 +483,52 @@
       font-weight: 500;
     }
 
+    .btn-row {
+      display: flex; gap: 10px; margin-top: 16px;
+    }
+
+    .btn-row .btn { flex: 1; }
+
     /* ── Responsive ── */
 
-    /* Tablets */
     @media (min-width: 600px) {
-      main {
-        max-width: 680px;
-        padding: 32px 28px 100px;
-        gap: 20px;
-      }
-
-      header {
-        padding: 24px 28px 22px;
-      }
-
+      main { max-width: 680px; padding: 32px 28px 100px; gap: 20px; }
+      header { padding: 24px 28px 22px; }
       .logo-gem { width: 44px; height: 44px; font-size: 22px; border-radius: 12px; }
       .logo-name { font-size: 22px; }
       .logo-tag { font-size: 11.5px; }
-
-      .upload-zone { padding: 56px 28px; }
-      .upload-title { font-size: 22px; }
-      .upload-hint { font-size: 14px; }
-
       .card { padding: 22px; }
       .result-card { padding: 22px; }
-
       .tab { font-size: 13.5px; padding: 10px 8px; }
-
       .prose { font-size: 15px; }
-      .btn-primary { padding: 15px; font-size: 16px; }
+      .btn-primary, .btn-send { padding: 15px; font-size: 16px; }
       .btn-outline { padding: 13px; font-size: 15px; }
-      .field input { padding: 13px 15px; }
+      .field input, .field textarea { padding: 13px 15px; }
     }
 
-    /* Desktop */
     @media (min-width: 900px) {
-      main {
-        max-width: 740px;
-        padding: 40px 32px 100px;
-      }
-
-      header {
-        padding: 24px 40px 22px;
-      }
+      main { max-width: 740px; padding: 40px 32px 100px; }
+      header { padding: 24px 40px 22px; }
     }
 
-    /* Small phones */
     @media (max-width: 380px) {
       header { padding: 16px 14px 14px; gap: 10px; }
       .logo-gem { width: 34px; height: 34px; font-size: 17px; }
       .logo-name { font-size: 17px; }
-
       main { padding: 18px 12px 90px; gap: 14px; }
-
       .card { padding: 15px; }
       .result-card { padding: 15px; }
-      .upload-zone { padding: 36px 14px; }
-      .upload-title { font-size: 17px; }
-
       .tab { font-size: 11px; padding: 7px 4px; }
-      .btn-primary { padding: 12px; font-size: 14px; }
+      .btn-primary, .btn-send { padding: 12px; font-size: 14px; }
     }
 
-    /* Touch-friendly tap targets */
     @media (pointer: coarse) {
       .btn-mini { padding: 7px 14px; font-size: 12px; }
       .tab { padding: 10px 6px; min-height: 44px; }
       .keys-header { min-height: 44px; }
-      .field input { padding: 13px 14px; font-size: 16px; }
+      .field input, .field textarea { padding: 13px 14px; font-size: 16px; }
     }
 
-    /* Safe area for notched phones */
     @supports (padding: env(safe-area-inset-bottom)) {
       main { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
       header {
@@ -496,79 +541,125 @@
 <body>
 
 <header>
-  <div class="logo-gem">🎙</div>
+  <div class="logo-gem">C</div>
   <div class="logo-wordmark">
-    <div class="logo-name">MeetingMind</div>
+    <div class="logo-name">Chronics.ai</div>
     <div class="logo-tag">Meeting Intelligence</div>
   </div>
 </header>
 
 <main>
 
-  <!-- ── API Keys ── -->
-  <div class="card" id="keysCard">
-    <div class="keys-header" onclick="toggleKeys()" role="button" aria-expanded="true">
-      <span class="keys-label">⚙ API Keys</span>
-      <span class="keys-badge" id="keysBadge">✓ Configured</span>
+  <!-- ── Settings ── -->
+  <div class="card" id="settingsCard">
+    <div class="keys-header" onclick="toggleSettings()" role="button" aria-expanded="true">
+      <span class="keys-label">Settings</span>
+      <span class="keys-badge" id="settingsBadge">Configured</span>
     </div>
-    <div class="keys-body" id="keysBody">
+    <div class="keys-body" id="settingsBody">
       <div class="field" style="margin-top:14px">
-        <label>OpenAI API Key — for Whisper transcription</label>
-        <input type="password" id="openaiKey" placeholder="sk-..." autocomplete="off" autocorrect="off" spellcheck="false">
-      </div>
-      <div class="field">
-        <label>Anthropic API Key — for Claude analysis</label>
+        <label>Anthropic API Key</label>
         <input type="password" id="anthropicKey" placeholder="sk-ant-..." autocomplete="off" autocorrect="off" spellcheck="false">
       </div>
-      <button class="btn btn-primary" style="margin-top:4px" onclick="saveKeys()">Save Keys</button>
+      <hr class="field-divider">
+      <div class="field">
+        <label>OpenAI API Key (for audio transcription)</label>
+        <input type="password" id="openaiKey" placeholder="sk-..." autocomplete="off" autocorrect="off" spellcheck="false">
+        <div class="field-hint">Only needed if using the Upload Recording mode</div>
+      </div>
+      <hr class="field-divider">
+      <div class="field">
+        <label>EmailJS Service ID</label>
+        <input type="text" id="ejsService" placeholder="service_xxxxxxx" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>EmailJS Template ID</label>
+        <input type="text" id="ejsTemplate" placeholder="template_xxxxxxx" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>EmailJS Public Key</label>
+        <input type="text" id="ejsPublicKey" placeholder="your_public_key" autocomplete="off">
+      </div>
+      <button class="btn btn-primary" style="margin-top:4px" onclick="saveSettings()">Save Settings</button>
     </div>
   </div>
 
-  <!-- ── Upload ── -->
-  <div id="uploadSection">
-    <p class="section-eyebrow">Upload Recording</p>
-    <div class="upload-zone" id="uploadZone">
-      <input type="file" id="fileInput" accept="audio/*,video/*,.mp3,.m4a,.wav,.mp4,.mov,.ogg,.webm" onchange="handleFile(event)">
-      <span class="upload-icon">🎤</span>
-      <div class="upload-title">Upload Meeting Recording</div>
-      <div class="upload-hint">Tap to choose a file from your phone<br>MP3 · M4A · WAV · MP4 · MOV · OGG</div>
+  <!-- ── Input Section ── -->
+  <div id="inputSection">
+
+    <!-- Mode toggle -->
+    <div class="mode-toggle" style="margin-bottom:16px">
+      <button class="mode-btn active" id="modeNotes" onclick="switchMode('notes')">Paste Notes</button>
+      <button class="mode-btn" id="modeAudio" onclick="switchMode('audio')">Upload Recording</button>
     </div>
 
-    <div id="filePreview" class="hidden mt">
-      <div class="file-row">
-        <span class="file-row-icon">🎵</span>
-        <div class="file-row-info">
-          <div class="file-row-name" id="fileName">—</div>
-          <div class="file-row-size" id="fileSize">—</div>
+    <!-- Meeting info fields (shared) -->
+    <div class="card" id="meetingInfoCard">
+      <p class="section-eyebrow" style="margin-bottom:14px">Meeting Info</p>
+      <div class="field">
+        <label>Your Name</label>
+        <input type="text" id="userName" placeholder="e.g. John Smith">
+      </div>
+      <div class="field">
+        <label>Who You Met With</label>
+        <input type="text" id="contactName" placeholder="e.g. Sarah Johnson">
+      </div>
+      <div class="field">
+        <label>Company / Brand</label>
+        <input type="text" id="companyName" placeholder="e.g. Green Leaf Co.">
+      </div>
+      <div class="field">
+        <label>Recipient Email</label>
+        <input type="email" id="recipientEmail" placeholder="sarah@greenleaf.com">
+      </div>
+      <div class="field">
+        <label>Meeting Title (optional)</label>
+        <input type="text" id="meetingTitle" placeholder="e.g. Product Partnership Discussion">
+      </div>
+    </div>
+
+    <!-- Notes mode -->
+    <div id="notesInput">
+      <div class="card">
+        <p class="section-eyebrow" style="margin-bottom:14px">Meeting Notes</p>
+        <div class="field" style="margin-bottom:0">
+          <textarea id="rawNotes" placeholder="Paste your meeting notes, voice transcript, or raw recap here..."></textarea>
         </div>
       </div>
-      <button class="btn btn-primary" id="analyzeBtn" onclick="runPipeline()" disabled>
-        ✦ Analyze Meeting
-      </button>
     </div>
+
+    <!-- Audio mode -->
+    <div id="audioInput" class="hidden">
+      <div class="card">
+        <p class="section-eyebrow" style="margin-bottom:14px">Upload Recording</p>
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="fileInput" accept="audio/*,video/*,.mp3,.m4a,.wav,.mp4,.mov,.ogg,.webm" onchange="handleFile(event)">
+          <span class="upload-icon">🎤</span>
+          <div class="upload-title">Upload Audio / Video</div>
+          <div class="upload-hint">MP3 · M4A · WAV · MP4 · MOV · OGG</div>
+        </div>
+        <div id="filePreview" class="hidden">
+          <div class="file-row">
+            <span class="file-row-icon">🎵</span>
+            <div class="file-row-info">
+              <div class="file-row-name" id="fileName">—</div>
+              <div class="file-row-size" id="fileSize">—</div>
+            </div>
+            <button class="file-row-remove" onclick="removeFile()">×</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary mt" id="generateBtn" onclick="runPipeline()">
+      Generate Summary
+    </button>
   </div>
 
   <!-- ── Progress ── -->
   <div class="card hidden" id="progressCard">
     <p class="section-eyebrow" style="margin-bottom:18px">Processing</p>
-    <div class="step-list">
-      <div class="step-row">
-        <div class="step-orb" id="orb1">1</div>
-        <span class="step-lbl" id="lbl1">Reading file</span>
-      </div>
-      <div class="step-row">
-        <div class="step-orb" id="orb2">2</div>
-        <span class="step-lbl" id="lbl2">Transcribing with Whisper</span>
-      </div>
-      <div class="step-row">
-        <div class="step-orb" id="orb3">3</div>
-        <span class="step-lbl" id="lbl3">Summarizing &amp; extracting action items</span>
-      </div>
-      <div class="step-row">
-        <div class="step-orb" id="orb4">4</div>
-        <span class="step-lbl" id="lbl4">Drafting follow-up email</span>
-      </div>
-    </div>
+    <div class="step-list" id="stepList"></div>
     <div class="hidden err-box" id="errBox"></div>
   </div>
 
@@ -577,24 +668,14 @@
     <p class="section-eyebrow">Results</p>
 
     <div class="tabs" id="tabBar">
-      <button class="tab active" onclick="switchTab('transcript', 0)">Transcript</button>
-      <button class="tab" onclick="switchTab('summary', 1)">Summary</button>
-      <button class="tab" onclick="switchTab('nextsteps', 2)">Next Steps</button>
+      <button class="tab active" onclick="switchTab('summary', 0)">Summary</button>
+      <button class="tab" onclick="switchTab('keypoints', 1)">Key Points</button>
+      <button class="tab" onclick="switchTab('actions', 2)">Actions</button>
       <button class="tab" onclick="switchTab('email', 3)">Email</button>
     </div>
 
-    <!-- Transcript -->
-    <div class="panel active" id="panel-transcript">
-      <div class="result-card">
-        <div class="result-actions">
-          <button class="btn btn-mini" onclick="copyText('transcriptProse')">Copy</button>
-        </div>
-        <div class="prose" id="transcriptProse" style="padding-top:0; max-height:60vh; overflow-y:auto;"></div>
-      </div>
-    </div>
-
     <!-- Summary -->
-    <div class="panel" id="panel-summary">
+    <div class="panel active" id="panel-summary">
       <div class="result-card">
         <div class="result-actions">
           <button class="btn btn-mini" onclick="copyText('summaryProse')">Copy</button>
@@ -603,13 +684,23 @@
       </div>
     </div>
 
-    <!-- Next Steps -->
-    <div class="panel" id="panel-nextsteps">
+    <!-- Key Points -->
+    <div class="panel" id="panel-keypoints">
       <div class="result-card">
         <div class="result-actions">
-          <button class="btn btn-mini" onclick="copyNextSteps()">Copy All</button>
+          <button class="btn btn-mini" onclick="copyKeyPoints()">Copy</button>
         </div>
-        <div class="steps-list" id="stepsList"></div>
+        <div class="kp-list" id="keyPointsList"></div>
+      </div>
+    </div>
+
+    <!-- Action Items -->
+    <div class="panel" id="panel-actions">
+      <div class="result-card">
+        <div class="result-actions">
+          <button class="btn btn-mini" onclick="copyActions()">Copy All</button>
+        </div>
+        <div class="steps-list" id="actionsList"></div>
       </div>
     </div>
 
@@ -620,6 +711,10 @@
           <button class="btn btn-mini" onclick="copyEmail()">Copy</button>
         </div>
         <div class="email-meta">
+          <div class="email-field-label">To</div>
+          <div class="email-field-val" id="emailTo"></div>
+        </div>
+        <div class="email-meta">
           <div class="email-field-label">Subject</div>
           <div class="email-field-val" id="emailSubject"></div>
         </div>
@@ -628,7 +723,11 @@
       </div>
     </div>
 
-    <button class="btn btn-outline mt" onclick="resetApp()">↩ Analyze Another Meeting</button>
+    <!-- Send / New Meeting buttons -->
+    <div class="btn-row">
+      <button class="btn btn-send" id="sendBtn" onclick="sendEmail()">Send Email</button>
+    </div>
+    <button class="btn btn-outline mt" onclick="resetApp()">New Meeting</button>
   </div>
 
 </main>
@@ -639,42 +738,81 @@
 /* ────────────────────────────────────────────
    State
 ──────────────────────────────────────────── */
-let keys = JSON.parse(localStorage.getItem('mm_keys') || '{"openai":"","anthropic":""}');
+let cfg = JSON.parse(localStorage.getItem('chronics_cfg') || '{}');
 let file = null;
 let results = {};
-const tabNames = ['transcript','summary','nextsteps','email'];
-
-// Restore saved keys into inputs on load
-if (keys.openai || keys.anthropic) {
-  document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('openaiKey').value = keys.openai;
-    document.getElementById('anthropicKey').value = keys.anthropic;
-    if (keys.openai && keys.anthropic) {
-      document.getElementById('keysBadge').style.display = 'block';
-      document.getElementById('keysBody').style.display = 'none';
-    }
-    updateBtn();
-  });
-}
+let currentMode = 'notes';
+const tabNames = ['summary','keypoints','actions','email'];
 
 /* ────────────────────────────────────────────
-   Keys
+   Init
 ──────────────────────────────────────────── */
-function toggleKeys() {
-  const body = document.getElementById('keysBody');
+document.addEventListener('DOMContentLoaded', () => {
+  // Restore settings
+  if (cfg.anthropic) document.getElementById('anthropicKey').value = cfg.anthropic;
+  if (cfg.openai) document.getElementById('openaiKey').value = cfg.openai;
+  if (cfg.ejsService) document.getElementById('ejsService').value = cfg.ejsService;
+  if (cfg.ejsTemplate) document.getElementById('ejsTemplate').value = cfg.ejsTemplate;
+  if (cfg.ejsPublicKey) document.getElementById('ejsPublicKey').value = cfg.ejsPublicKey;
+
+  if (cfg.anthropic && cfg.ejsService) {
+    document.getElementById('settingsBadge').style.display = 'block';
+    document.getElementById('settingsBody').style.display = 'none';
+  }
+
+  // Init EmailJS
+  if (cfg.ejsPublicKey) {
+    emailjs.init(cfg.ejsPublicKey);
+  }
+
+  // Drag & drop
+  const zone = document.getElementById('uploadZone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f) setFile(f);
+  });
+});
+
+/* ────────────────────────────────────────────
+   Settings
+──────────────────────────────────────────── */
+function toggleSettings() {
+  const body = document.getElementById('settingsBody');
   body.style.display = (body.style.display === 'none') ? 'block' : 'none';
 }
 
-function saveKeys() {
-  const oa = document.getElementById('openaiKey').value.trim();
-  const an = document.getElementById('anthropicKey').value.trim();
-  if (!oa || !an) { toast('Please enter both API keys'); return; }
-  keys = { openai: oa, anthropic: an };
-  localStorage.setItem('mm_keys', JSON.stringify(keys));
-  document.getElementById('keysBadge').style.display = 'block';
-  document.getElementById('keysBody').style.display = 'none';
-  updateBtn();
-  toast('Keys saved ✓');
+function saveSettings() {
+  const anthropic = document.getElementById('anthropicKey').value.trim();
+  const openai = document.getElementById('openaiKey').value.trim();
+  const ejsService = document.getElementById('ejsService').value.trim();
+  const ejsTemplate = document.getElementById('ejsTemplate').value.trim();
+  const ejsPublicKey = document.getElementById('ejsPublicKey').value.trim();
+
+  if (!anthropic) { toast('Anthropic API key is required'); return; }
+
+  cfg = { anthropic, openai, ejsService, ejsTemplate, ejsPublicKey };
+  localStorage.setItem('chronics_cfg', JSON.stringify(cfg));
+
+  if (ejsPublicKey) emailjs.init(ejsPublicKey);
+
+  document.getElementById('settingsBadge').style.display = 'block';
+  document.getElementById('settingsBody').style.display = 'none';
+  toast('Settings saved');
+}
+
+/* ────────────────────────────────────────────
+   Mode toggle
+──────────────────────────────────────────── */
+function switchMode(mode) {
+  currentMode = mode;
+  document.getElementById('modeNotes').classList.toggle('active', mode === 'notes');
+  document.getElementById('modeAudio').classList.toggle('active', mode === 'audio');
+  document.getElementById('notesInput').classList.toggle('hidden', mode !== 'notes');
+  document.getElementById('audioInput').classList.toggle('hidden', mode !== 'audio');
 }
 
 /* ────────────────────────────────────────────
@@ -682,8 +820,7 @@ function saveKeys() {
 ──────────────────────────────────────────── */
 function handleFile(e) {
   const f = e.target.files[0];
-  if (!f) return;
-  setFile(f);
+  if (f) setFile(f);
 }
 
 function setFile(f) {
@@ -691,11 +828,12 @@ function setFile(f) {
   document.getElementById('fileName').textContent = f.name;
   document.getElementById('fileSize').textContent = fmtSize(f.size);
   document.getElementById('filePreview').classList.remove('hidden');
-  updateBtn();
 }
 
-function updateBtn() {
-  document.getElementById('analyzeBtn').disabled = !(keys.openai && keys.anthropic && file);
+function removeFile() {
+  file = null;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('filePreview').classList.add('hidden');
 }
 
 function fmtSize(b) {
@@ -703,72 +841,129 @@ function fmtSize(b) {
   return (b / 1048576).toFixed(1) + ' MB';
 }
 
-/* Drag & drop */
-const zone = document.getElementById('uploadZone');
-zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
-zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
-zone.addEventListener('drop', e => {
-  e.preventDefault();
-  zone.classList.remove('drag-over');
-  const f = e.dataTransfer.files[0];
-  if (f) setFile(f);
-});
-
 /* ────────────────────────────────────────────
    Pipeline
 ──────────────────────────────────────────── */
 async function runPipeline() {
-  if (!file || !keys.openai || !keys.anthropic) return;
+  // Validate
+  if (!cfg.anthropic) { toast('Please configure your API key in Settings'); return; }
+
+  const userName = document.getElementById('userName').value.trim();
+  const contactName = document.getElementById('contactName').value.trim();
+  const companyName = document.getElementById('companyName').value.trim();
+  const recipientEmail = document.getElementById('recipientEmail').value.trim();
+  const meetingTitle = document.getElementById('meetingTitle').value.trim();
+
+  if (!userName || !contactName || !recipientEmail) {
+    toast('Please fill in your name, contact name, and email');
+    return;
+  }
+
+  let notesText = '';
+
+  if (currentMode === 'notes') {
+    notesText = document.getElementById('rawNotes').value.trim();
+    if (!notesText) { toast('Please enter your meeting notes'); return; }
+  } else {
+    if (!file) { toast('Please upload a recording'); return; }
+    if (!cfg.openai) { toast('OpenAI key needed for transcription — check Settings'); return; }
+  }
+
+  // Store meeting info for email
+  results.userName = userName;
+  results.contactName = contactName;
+  results.companyName = companyName;
+  results.recipientEmail = recipientEmail;
+  results.meetingTitle = meetingTitle;
 
   // Show progress
-  document.getElementById('uploadSection').classList.add('hidden');
+  document.getElementById('inputSection').classList.add('hidden');
   const pc = document.getElementById('progressCard');
   pc.classList.remove('hidden');
   document.getElementById('errBox').classList.add('hidden');
-  resetOrbs();
+
+  // Build steps based on mode
+  const steps = [];
+  if (currentMode === 'audio') {
+    steps.push('Transcribing with Whisper');
+  }
+  steps.push('Analyzing with Claude');
+  steps.push('Generating summary & action items');
+  steps.push('Drafting follow-up email');
+
+  renderSteps(steps);
+
+  let stepIdx = 0;
 
   try {
-    // Step 1
-    orb(1, 'active'); lbl(1, 'Reading file…');
-    await sleep(400);
-    orb(1, 'done'); lbl(1, 'File ready');
+    // Transcribe if audio mode
+    if (currentMode === 'audio') {
+      orbStep(stepIdx, 'active');
+      notesText = await transcribe(file);
+      orbStep(stepIdx, 'done');
+      stepIdx++;
+    }
 
-    // Step 2
-    orb(2, 'active'); lbl(2, 'Transcribing with Whisper…');
-    const transcript = await transcribe(file);
-    orb(2, 'done'); lbl(2, 'Transcription complete');
-    results.transcript = transcript;
+    // Analyze
+    orbStep(stepIdx, 'active');
+    const analysis = await analyze(notesText, { userName, contactName, companyName, meetingTitle });
+    orbStep(stepIdx, 'done');
+    stepIdx++;
 
-    // Step 3
-    orb(3, 'active'); lbl(3, 'Analyzing with Claude…');
-    const analysis = await analyze(transcript);
+    // Summary & actions (instant from analysis)
+    orbStep(stepIdx, 'active');
     results.summary = analysis.summary;
-    results.nextSteps = analysis.next_steps;
-    orb(3, 'done'); lbl(3, 'Analysis complete');
+    results.keyPoints = analysis.key_points;
+    results.actionItems = analysis.action_items;
+    await sleep(300);
+    orbStep(stepIdx, 'done');
+    stepIdx++;
 
-    // Step 4
-    orb(4, 'active'); lbl(4, 'Drafting follow-up email…');
+    // Email
+    orbStep(stepIdx, 'active');
     results.emailSubject = analysis.email_subject;
     results.emailBody = analysis.email_body;
-    await sleep(500);
-    orb(4, 'done'); lbl(4, 'Email ready');
+    await sleep(300);
+    orbStep(stepIdx, 'done');
 
-    await sleep(600);
+    await sleep(500);
     pc.classList.add('hidden');
     renderResults();
 
   } catch (err) {
     const box = document.getElementById('errBox');
     box.classList.remove('hidden');
-    box.textContent = '⚠ ' + (err.message || 'Something went wrong. Check your API keys and try again.');
+    box.textContent = err.message || 'Something went wrong. Check your settings and try again.';
     // Reset active orbs
-    for (let i = 1; i <= 4; i++) {
-      const o = document.getElementById('orb' + i);
-      if (o.classList.contains('active')) { o.className = 'step-orb'; o.textContent = i; }
-    }
+    document.querySelectorAll('.step-orb.active').forEach(o => {
+      o.className = 'step-orb';
+    });
   }
 }
 
+function renderSteps(steps) {
+  const list = document.getElementById('stepList');
+  list.innerHTML = '';
+  steps.forEach((s, i) => {
+    const row = document.createElement('div');
+    row.className = 'step-row';
+    row.innerHTML = `<div class="step-orb" id="orb${i}">${i + 1}</div><span class="step-lbl" id="lbl${i}">${esc(s)}</span>`;
+    list.appendChild(row);
+  });
+}
+
+function orbStep(idx, state) {
+  const el = document.getElementById('orb' + idx);
+  const lbl = document.getElementById('lbl' + idx);
+  if (!el) return;
+  el.className = 'step-orb ' + state;
+  if (state === 'done') el.innerHTML = '&#10003;';
+  if (lbl) lbl.className = 'step-lbl ' + state;
+}
+
+/* ────────────────────────────────────────────
+   Transcribe (audio mode)
+──────────────────────────────────────────── */
 async function transcribe(f) {
   const fd = new FormData();
   fd.append('file', f);
@@ -777,7 +972,7 @@ async function transcribe(f) {
 
   const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
     method: 'POST',
-    headers: { 'Authorization': 'Bearer ' + keys.openai },
+    headers: { 'Authorization': 'Bearer ' + cfg.openai },
     body: fd
   });
 
@@ -789,30 +984,44 @@ async function transcribe(f) {
   return res.text();
 }
 
-async function analyze(transcript) {
-  const prompt = `You are a professional meeting analyst. Analyze the following meeting transcript and provide a structured JSON response.
+/* ────────────────────────────────────────────
+   Analyze with Claude
+──────────────────────────────────────────── */
+async function analyze(notes, info) {
+  const prompt = `You are a professional meeting analyst for a B2B cannabis industry event called Interchange.
 
-Return ONLY a valid JSON object — no markdown, no extra text — with this exact structure:
+Analyze the following meeting notes and provide a structured JSON response.
+
+MEETING CONTEXT:
+- From: ${info.userName}
+- Met with: ${info.contactName}
+- Company: ${info.companyName}
+${info.meetingTitle ? '- Meeting: ' + info.meetingTitle : ''}
+
+RAW NOTES:
+${notes.slice(0, 14000)}
+
+Return ONLY a valid JSON object with this exact structure:
 {
-  "summary": "3–5 sentence paragraph summarizing the key discussion points, decisions, and outcomes",
-  "next_steps": ["Concrete action item 1", "Concrete action item 2", ...],
-  "email_subject": "Follow-up: [descriptive meeting topic]",
-  "email_body": "Hi [Name],\\n\\nThank you for your time in today's meeting...\\n\\n[professional body with highlights and next steps]\\n\\nBest regards,\\n[Your Name]"
+  "summary": "3-5 sentence professional summary of the meeting",
+  "key_points": ["Key point 1", "Key point 2", ...],
+  "action_items": ["Action item 1 with owner", "Action item 2 with owner", ...],
+  "email_subject": "Follow-up: [topic]",
+  "email_body": "Professional follow-up email body (under 250 words). Address it to ${info.contactName}. Sign off as ${info.userName}."
 }
 
 Guidelines:
-- Summary: clear, factual, captures what was decided
-- Next steps: each item should be specific and actionable (who does what)
-- Email: professional, warm, concise — no more than 250 words
-
-TRANSCRIPT:
-${transcript.slice(0, 14000)}`;
+- Clean up any rough notes, typos, or voice-to-text artifacts
+- Summary: clear, professional, factual
+- Key points: the most important takeaways (3-6 items)
+- Action items: specific, actionable, with responsible person noted
+- Email: warm, professional, concise — suitable for a B2B follow-up`;
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': keys.anthropic,
+      'x-api-key': cfg.anthropic,
       'anthropic-version': '2023-06-01',
       'anthropic-dangerous-direct-browser-access': 'true'
     },
@@ -832,37 +1041,77 @@ ${transcript.slice(0, 14000)}`;
   const data = await res.json();
   const text = data.content.map(b => b.text || '').join('');
   const match = text.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error('Could not parse Claude response. Please try again.');
+  if (!match) throw new Error('Could not parse response. Please try again.');
   try { return JSON.parse(match[0]); }
-  catch(_) { throw new Error('Invalid JSON in response. Please try again.'); }
+  catch(_) { throw new Error('Invalid response format. Please try again.'); }
 }
 
 /* ────────────────────────────────────────────
-   Render
+   Render results
 ──────────────────────────────────────────── */
 function renderResults() {
-  // Transcript
-  document.getElementById('transcriptProse').textContent = results.transcript;
-
   // Summary
   document.getElementById('summaryProse').textContent = results.summary;
 
-  // Next steps
-  const list = document.getElementById('stepsList');
-  list.innerHTML = '';
-  (results.nextSteps || []).forEach((s, i) => {
+  // Key points
+  const kpList = document.getElementById('keyPointsList');
+  kpList.innerHTML = '';
+  (results.keyPoints || []).forEach(kp => {
+    const div = document.createElement('div');
+    div.className = 'kp-item';
+    div.innerHTML = `<span class="kp-bullet"></span><span>${esc(kp)}</span>`;
+    kpList.appendChild(div);
+  });
+
+  // Action items
+  const actionsList = document.getElementById('actionsList');
+  actionsList.innerHTML = '';
+  (results.actionItems || []).forEach((s, i) => {
     const div = document.createElement('div');
     div.className = 'step-item';
     div.innerHTML = `<span class="step-num">${i + 1}</span><span class="step-item-text">${esc(s)}</span>`;
-    list.appendChild(div);
+    actionsList.appendChild(div);
   });
 
   // Email
+  document.getElementById('emailTo').textContent = results.recipientEmail;
   document.getElementById('emailSubject').textContent = results.emailSubject || '';
   document.getElementById('emailBody').textContent = results.emailBody || '';
 
+  // Show send button only if EmailJS configured
+  document.getElementById('sendBtn').disabled = !(cfg.ejsService && cfg.ejsTemplate && cfg.ejsPublicKey);
+
   document.getElementById('resultsSection').classList.remove('hidden');
-  switchTab('transcript', 0);
+  switchTab('summary', 0);
+}
+
+/* ────────────────────────────────────────────
+   Send email via EmailJS
+──────────────────────────────────────────── */
+async function sendEmail() {
+  if (!cfg.ejsService || !cfg.ejsTemplate || !cfg.ejsPublicKey) {
+    toast('EmailJS not configured — check Settings');
+    return;
+  }
+
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  try {
+    await emailjs.send(cfg.ejsService, cfg.ejsTemplate, {
+      to_email: results.recipientEmail,
+      from_name: results.userName,
+      subject: results.emailSubject,
+      body: results.emailBody
+    });
+    toast('Email sent!');
+    btn.textContent = 'Sent!';
+  } catch (err) {
+    toast('Failed to send: ' + (err.text || err.message || 'Unknown error'));
+    btn.disabled = false;
+    btn.textContent = 'Send Email';
+  }
 }
 
 /* ────────────────────────────────────────────
@@ -872,7 +1121,7 @@ function switchTab(name, idx) {
   document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === idx));
   tabNames.forEach(n => {
     const p = document.getElementById('panel-' + n);
-    p.classList.toggle('active', n === name);
+    if (p) p.classList.toggle('active', n === name);
   });
 }
 
@@ -885,8 +1134,13 @@ function copyText(id) {
   navigator.clipboard.writeText(el.textContent).then(() => toast('Copied!')).catch(() => fallbackCopy(el.textContent));
 }
 
-function copyNextSteps() {
-  const text = (results.nextSteps || []).map((s, i) => `${i + 1}. ${s}`).join('\n');
+function copyKeyPoints() {
+  const text = (results.keyPoints || []).map(kp => '• ' + kp).join('\n');
+  navigator.clipboard.writeText(text).then(() => toast('Copied!')).catch(() => fallbackCopy(text));
+}
+
+function copyActions() {
+  const text = (results.actionItems || []).map((s, i) => `${i + 1}. ${s}`).join('\n');
   navigator.clipboard.writeText(text).then(() => toast('Copied!')).catch(() => fallbackCopy(text));
 }
 
@@ -911,40 +1165,19 @@ function fallbackCopy(text) {
 ──────────────────────────────────────────── */
 function resetApp() {
   file = null; results = {};
+  document.getElementById('rawNotes').value = '';
+  document.getElementById('userName').value = '';
+  document.getElementById('contactName').value = '';
+  document.getElementById('companyName').value = '';
+  document.getElementById('recipientEmail').value = '';
+  document.getElementById('meetingTitle').value = '';
   document.getElementById('fileInput').value = '';
   document.getElementById('filePreview').classList.add('hidden');
   document.getElementById('resultsSection').classList.add('hidden');
   document.getElementById('progressCard').classList.add('hidden');
-  document.getElementById('uploadSection').classList.remove('hidden');
-  resetOrbs();
-  updateBtn();
-}
-
-/* ────────────────────────────────────────────
-   Orb helpers
-──────────────────────────────────────────── */
-function orb(n, state) {
-  const el = document.getElementById('orb' + n);
-  el.className = 'step-orb ' + state;
-  el.textContent = state === 'done' ? '✓' : n;
-}
-
-function lbl(n, text) {
-  const el = document.getElementById('lbl' + n);
-  el.textContent = text;
-  el.className = 'step-lbl ' + (text.includes('…') ? 'active' : 'done');
-}
-
-function resetOrbs() {
-  for (let i = 1; i <= 4; i++) {
-    document.getElementById('orb' + i).className = 'step-orb';
-    document.getElementById('orb' + i).textContent = i;
-    document.getElementById('lbl' + i).className = 'step-lbl';
-  }
-  document.getElementById('lbl1').textContent = 'Reading file';
-  document.getElementById('lbl2').textContent = 'Transcribing with Whisper';
-  document.getElementById('lbl3').textContent = 'Summarizing & extracting action items';
-  document.getElementById('lbl4').textContent = 'Drafting follow-up email';
+  document.getElementById('inputSection').classList.remove('hidden');
+  document.getElementById('sendBtn').textContent = 'Send Email';
+  document.getElementById('sendBtn').disabled = false;
 }
 
 /* ────────────────────────────────────────────
