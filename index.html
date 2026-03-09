@@ -889,7 +889,7 @@ async function runPipeline() {
   if (currentMode === 'audio') {
     steps.push('Transcribing with Whisper');
   }
-  steps.push('Analyzing with Claude');
+  steps.push('Analyzing notes');
   steps.push('Generating summary & action items');
   steps.push('Drafting follow-up email');
 
@@ -940,6 +940,18 @@ async function runPipeline() {
     document.querySelectorAll('.step-orb.active').forEach(o => {
       o.className = 'step-orb';
     });
+    // Show retry button
+    const retryBtn = document.createElement('button');
+    retryBtn.className = 'btn btn-outline';
+    retryBtn.style.marginTop = '14px';
+    retryBtn.textContent = 'Go Back';
+    retryBtn.onclick = () => {
+      document.getElementById('progressCard').classList.add('hidden');
+      document.getElementById('inputSection').classList.remove('hidden');
+    };
+    if (!box.nextElementSibling?.classList?.contains('btn-outline')) {
+      box.after(retryBtn);
+    }
   }
 }
 
@@ -1027,7 +1039,7 @@ Guidelines:
     },
     body: JSON.stringify({
       model: 'gpt-4o',
-      max_tokens: 2000,
+      max_completion_tokens: 2000,
       messages: [{ role: 'user', content: prompt }]
     })
   });
