@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Chronics.ai — Setup Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d0c0b;
+      --surface: #181614;
+      --surface2: #201e1c;
+      --border: #2d2a27;
+      --gold: #c9a84c;
+      --gold-light: #e0bb6a;
+      --gold-dim: rgba(201,168,76,0.12);
+      --text: #ede8e0;
+      --text-dim: #7a756d;
+      --text-muted: #4a4642;
+      --green: #5a8c5e;
+      --green-dim: rgba(90,140,94,0.12);
+      --radius: 14px;
+      --radius-sm: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      padding: 20px 20px 18px;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 10;
+    }
+
+    .logo-gem {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, #c9a84c 0%, #a07c30 100%);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 19px;
+      box-shadow: 0 2px 12px rgba(201,168,76,0.25);
+      flex-shrink: 0;
+    }
+
+    .logo-wordmark { line-height: 1.2; }
+
+    .logo-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 19px; font-weight: 600;
+      letter-spacing: -0.2px;
+    }
+
+    .logo-tag {
+      font-size: 10.5px;
+      color: var(--text-dim);
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+
+    main {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 28px 16px 80px;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-dim);
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .section {
+      margin-bottom: 36px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.3px;
+      color: var(--gold);
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 12px;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .step-number {
+      width: 28px; height: 28px; flex-shrink: 0;
+      background: var(--gold-dim);
+      border: 1px solid rgba(201,168,76,0.25);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; color: var(--gold); font-weight: 500;
+    }
+
+    .step-title {
+      font-size: 15px;
+      font-weight: 500;
+      padding-top: 3px;
+    }
+
+    .step-body {
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.7;
+      padding-left: 40px;
+    }
+
+    .step-body a {
+      color: var(--gold);
+      text-decoration: none;
+    }
+
+    .step-body a:hover {
+      color: var(--gold-light);
+      text-decoration: underline;
+    }
+
+    .code-block {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      margin: 10px 0;
+      font-family: monospace;
+      font-size: 13px;
+      color: var(--gold-light);
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .highlight {
+      color: var(--gold);
+      font-weight: 500;
+    }
+
+    .tip {
+      background: var(--gold-dim);
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: var(--radius-sm);
+      padding: 13px 15px;
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.6;
+      margin: 16px 0;
+    }
+
+    .tip-label {
+      color: var(--gold);
+      font-weight: 500;
+      margin-right: 4px;
+    }
+
+    .done-card {
+      background: var(--green-dim);
+      border: 1px solid rgba(90,140,94,0.25);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    .done-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: var(--green);
+      margin-bottom: 8px;
+    }
+
+    .done-card p {
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+
+    .done-card a {
+      display: inline-block;
+      margin-top: 14px;
+      background: var(--gold);
+      color: #0d0c0b;
+      padding: 11px 28px;
+      border-radius: 10px;
+      font-weight: 500;
+      font-size: 14px;
+      text-decoration: none;
+    }
+
+    .done-card a:hover { background: var(--gold-light); }
+
+    .template-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 13px;
+    }
+
+    .template-table th {
+      text-align: left;
+      padding: 8px 10px;
+      color: var(--text-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .template-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+
+    .template-table td:first-child {
+      font-family: monospace;
+      color: var(--gold-light);
+    }
+
+    /* Responsive */
+    @media (min-width: 600px) {
+      main { max-width: 680px; padding: 36px 28px 80px; }
+      header { padding: 24px 28px 22px; }
+      h1 { font-size: 30px; }
+    }
+
+    @media (max-width: 380px) {
+      header { padding: 16px 14px 14px; gap: 10px; }
+      main { padding: 22px 12px 70px; }
+      h1 { font-size: 22px; }
+      .step-body { padding-left: 0; margin-top: 8px; }
+    }
+
+    @supports (padding: env(safe-area-inset-bottom)) {
+      main { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-gem">C</div>
+  <div class="logo-wordmark">
+    <div class="logo-name">Chronics.ai</div>
+    <div class="logo-tag">Setup Guide</div>
+  </div>
+</header>
+
+<main>
+
+  <h1>Setup Guide</h1>
+  <p class="subtitle">Follow these steps to get Chronics.ai working. It takes about 5 minutes.</p>
+
+  <!-- ── OpenAI ── -->
+  <div class="section">
+    <div class="section-title">Step A — OpenAI API Key</div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">1</span>
+        <span class="step-title">Create an OpenAI account</span>
+      </div>
+      <div class="step-body">
+        Go to <a href="https://platform.openai.com/signup" target="_blank">platform.openai.com/signup</a> and sign up (or log in if you already have an account).
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">2</span>
+        <span class="step-title">Generate an API key</span>
+      </div>
+      <div class="step-body">
+        Go to <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a>, click <span class="highlight">Create new secret key</span>, give it a name like "Chronics", and copy the key. It starts with <span class="highlight">sk-</span>.
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">3</span>
+        <span class="step-title">Add billing</span>
+      </div>
+      <div class="step-body">
+        Go to <a href="https://platform.openai.com/account/billing" target="_blank">Billing settings</a> and add a payment method. API usage is pay-as-you-go. For 30 meetings, expect roughly $1–3 total.
+      </div>
+    </div>
+
+    <div class="tip">
+      <span class="tip-label">Tip:</span> Set a spending limit of $10/month in billing settings so there are no surprises.
+    </div>
+  </div>
+
+  <!-- ── EmailJS ── -->
+  <div class="section">
+    <div class="section-title">Step B — EmailJS Setup</div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">1</span>
+        <span class="step-title">Create an EmailJS account</span>
+      </div>
+      <div class="step-body">
+        Go to <a href="https://www.emailjs.com/" target="_blank">emailjs.com</a> and sign up for a free account. The free plan includes 200 emails/month — more than enough for the event.
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">2</span>
+        <span class="step-title">Connect your email service</span>
+      </div>
+      <div class="step-body">
+        In the EmailJS dashboard, go to <span class="highlight">Email Services</span> and click <span class="highlight">Add New Service</span>. Choose Gmail (or Outlook). Click <span class="highlight">Connect Account</span> and authorize access. Note down the <span class="highlight">Service ID</span> (looks like <code>service_xxxxxxx</code>).
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">3</span>
+        <span class="step-title">Create an email template</span>
+      </div>
+      <div class="step-body">
+        Go to <span class="highlight">Email Templates</span> and click <span class="highlight">Create New Template</span>. Set it up like this:
+
+        <div class="code-block">Subject: {{subject}}
+
+To: {{to_email}}
+
+{{body}}</div>
+
+        Use these template variables:
+
+        <table class="template-table">
+          <tr><th>Variable</th><th>What it does</th></tr>
+          <tr><td>{{to_email}}</td><td>Recipient's email address</td></tr>
+          <tr><td>{{from_name}}</td><td>Your name (the sender)</td></tr>
+          <tr><td>{{subject}}</td><td>Email subject line</td></tr>
+          <tr><td>{{body}}</td><td>The full email body</td></tr>
+        </table>
+
+        In the template settings, set <span class="highlight">To Email</span> to <code>{{to_email}}</code> and <span class="highlight">From Name</span> to <code>{{from_name}}</code>.
+
+        Save the template. Note down the <span class="highlight">Template ID</span> (looks like <code>template_xxxxxxx</code>).
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">4</span>
+        <span class="step-title">Get your Public Key</span>
+      </div>
+      <div class="step-body">
+        Go to <span class="highlight">Account</span> (top right menu) and find your <span class="highlight">Public Key</span> under the API Keys section. Copy it.
+      </div>
+    </div>
+
+    <div class="tip">
+      <span class="tip-label">Tip:</span> Make sure the "To Email" field in your template settings is set to <code>{{to_email}}</code> — not a hardcoded address. This is what allows sending to different people.
+    </div>
+  </div>
+
+  <!-- ── Final ── -->
+  <div class="section">
+    <div class="section-title">Step C — Enter Settings in Chronics.ai</div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">1</span>
+        <span class="step-title">Open the app and expand Settings</span>
+      </div>
+      <div class="step-body">
+        Open Chronics.ai and tap the <span class="highlight">Settings</span> card at the top.
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">2</span>
+        <span class="step-title">Paste your 4 values</span>
+      </div>
+      <div class="step-body">
+        Enter the following:
+        <div class="code-block">OpenAI API Key:      sk-...
+EmailJS Service ID:  service_xxxxxxx
+EmailJS Template ID: template_xxxxxxx
+EmailJS Public Key:  your_public_key</div>
+        Click <span class="highlight">Save Settings</span>. You'll see a "Configured" badge. These are saved locally and you won't need to enter them again on this device.
+      </div>
+    </div>
+  </div>
+
+  <div class="done-card">
+    <h3>You're all set</h3>
+    <p>Your settings are saved. Start using Chronics.ai to capture meetings and send follow-ups instantly.</p>
+    <a href="index.html">Open Chronics.ai</a>
+  </div>
+
+</main>
+
+</body>
+</html>
