@@ -556,11 +556,16 @@
       <span class="keys-label">Settings</span>
       <span class="keys-badge" id="settingsBadge">Configured</span>
     </div>
-    <div class="keys-body" id="settingsBody">
+    <div class="keys-body" id="settingsBody" style="display:none">
       <div class="field" style="margin-top:14px">
+        <label>Your Name</label>
+        <input type="text" id="userName" placeholder="e.g. John Smith" autocomplete="off">
+        <div class="field-hint">Saved for all meetings — used in emails</div>
+      </div>
+      <hr class="field-divider">
+      <div class="field">
         <label>OpenAI API Key</label>
         <input type="password" id="openaiKey" placeholder="sk-..." autocomplete="off" autocorrect="off" spellcheck="false">
-        <div class="field-hint">Used for AI summaries and audio transcription</div>
       </div>
       <hr class="field-divider">
       <div class="field">
@@ -576,6 +581,9 @@
         <input type="text" id="ejsPublicKey" placeholder="your_public_key" autocomplete="off">
       </div>
       <button class="btn btn-primary" style="margin-top:4px" onclick="saveSettings()">Save Settings</button>
+      <div class="field-hint" style="margin-top:10px; text-align:center">
+        <a href="setup.html" style="color:var(--gold); text-decoration:none;">Need help? View setup guide</a>
+      </div>
     </div>
   </div>
 
@@ -591,10 +599,6 @@
     <!-- Meeting info fields (shared) -->
     <div class="card" id="meetingInfoCard">
       <p class="section-eyebrow" style="margin-bottom:14px">Meeting Info</p>
-      <div class="field">
-        <label>Your Name</label>
-        <input type="text" id="userName" placeholder="e.g. John Smith">
-      </div>
       <div class="field">
         <label>Who You Met With</label>
         <input type="text" id="contactName" placeholder="e.g. Sarah Johnson">
@@ -744,14 +748,18 @@ const tabNames = ['summary','keypoints','actions','email'];
 ──────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   // Restore settings
+  if (cfg.userName) document.getElementById('userName').value = cfg.userName;
   if (cfg.openai) document.getElementById('openaiKey').value = cfg.openai;
   if (cfg.ejsService) document.getElementById('ejsService').value = cfg.ejsService;
   if (cfg.ejsTemplate) document.getElementById('ejsTemplate').value = cfg.ejsTemplate;
   if (cfg.ejsPublicKey) document.getElementById('ejsPublicKey').value = cfg.ejsPublicKey;
 
-  if (cfg.openai && cfg.ejsService) {
+  if (cfg.openai && cfg.userName) {
     document.getElementById('settingsBadge').style.display = 'block';
     document.getElementById('settingsBody').style.display = 'none';
+  } else {
+    // First visit — expand settings
+    document.getElementById('settingsBody').style.display = 'block';
   }
 
   // Init EmailJS
@@ -780,14 +788,16 @@ function toggleSettings() {
 }
 
 function saveSettings() {
+  const userName = document.getElementById('userName').value.trim();
   const openai = document.getElementById('openaiKey').value.trim();
   const ejsService = document.getElementById('ejsService').value.trim();
   const ejsTemplate = document.getElementById('ejsTemplate').value.trim();
   const ejsPublicKey = document.getElementById('ejsPublicKey').value.trim();
 
+  if (!userName) { toast('Please enter your name'); return; }
   if (!openai) { toast('OpenAI API key is required'); return; }
 
-  cfg = { openai, ejsService, ejsTemplate, ejsPublicKey };
+  cfg = { userName, openai, ejsService, ejsTemplate, ejsPublicKey };
   localStorage.setItem('chronics_cfg', JSON.stringify(cfg));
 
   if (ejsPublicKey) emailjs.init(ejsPublicKey);
@@ -841,14 +851,14 @@ async function runPipeline() {
   // Validate
   if (!cfg.openai) { toast('Please configure your OpenAI key in Settings'); return; }
 
-  const userName = document.getElementById('userName').value.trim();
+  const userName = cfg.userName || '';
   const contactName = document.getElementById('contactName').value.trim();
   const companyName = document.getElementById('companyName').value.trim();
   const recipientEmail = document.getElementById('recipientEmail').value.trim();
   const meetingTitle = document.getElementById('meetingTitle').value.trim();
 
-  if (!userName || !contactName || !recipientEmail) {
-    toast('Please fill in your name, contact name, and email');
+  if (!contactName || !recipientEmail) {
+    toast('Please fill in contact name and email');
     return;
   }
 
@@ -1156,7 +1166,6 @@ function fallbackCopy(text) {
 function resetApp() {
   file = null; results = {};
   document.getElementById('rawNotes').value = '';
-  document.getElementById('userName').value = '';
   document.getElementById('contactName').value = '';
   document.getElementById('companyName').value = '';
   document.getElementById('recipientEmail').value = '';
