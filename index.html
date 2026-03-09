@@ -558,14 +558,9 @@
     </div>
     <div class="keys-body" id="settingsBody">
       <div class="field" style="margin-top:14px">
-        <label>Anthropic API Key</label>
-        <input type="password" id="anthropicKey" placeholder="sk-ant-..." autocomplete="off" autocorrect="off" spellcheck="false">
-      </div>
-      <hr class="field-divider">
-      <div class="field">
-        <label>OpenAI API Key (for audio transcription)</label>
+        <label>OpenAI API Key</label>
         <input type="password" id="openaiKey" placeholder="sk-..." autocomplete="off" autocorrect="off" spellcheck="false">
-        <div class="field-hint">Only needed if using the Upload Recording mode</div>
+        <div class="field-hint">Used for AI summaries and audio transcription</div>
       </div>
       <hr class="field-divider">
       <div class="field">
@@ -749,13 +744,12 @@ const tabNames = ['summary','keypoints','actions','email'];
 ──────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   // Restore settings
-  if (cfg.anthropic) document.getElementById('anthropicKey').value = cfg.anthropic;
   if (cfg.openai) document.getElementById('openaiKey').value = cfg.openai;
   if (cfg.ejsService) document.getElementById('ejsService').value = cfg.ejsService;
   if (cfg.ejsTemplate) document.getElementById('ejsTemplate').value = cfg.ejsTemplate;
   if (cfg.ejsPublicKey) document.getElementById('ejsPublicKey').value = cfg.ejsPublicKey;
 
-  if (cfg.anthropic && cfg.ejsService) {
+  if (cfg.openai && cfg.ejsService) {
     document.getElementById('settingsBadge').style.display = 'block';
     document.getElementById('settingsBody').style.display = 'none';
   }
@@ -786,15 +780,14 @@ function toggleSettings() {
 }
 
 function saveSettings() {
-  const anthropic = document.getElementById('anthropicKey').value.trim();
   const openai = document.getElementById('openaiKey').value.trim();
   const ejsService = document.getElementById('ejsService').value.trim();
   const ejsTemplate = document.getElementById('ejsTemplate').value.trim();
   const ejsPublicKey = document.getElementById('ejsPublicKey').value.trim();
 
-  if (!anthropic) { toast('Anthropic API key is required'); return; }
+  if (!openai) { toast('OpenAI API key is required'); return; }
 
-  cfg = { anthropic, openai, ejsService, ejsTemplate, ejsPublicKey };
+  cfg = { openai, ejsService, ejsTemplate, ejsPublicKey };
   localStorage.setItem('chronics_cfg', JSON.stringify(cfg));
 
   if (ejsPublicKey) emailjs.init(ejsPublicKey);
@@ -846,7 +839,7 @@ function fmtSize(b) {
 ──────────────────────────────────────────── */
 async function runPipeline() {
   // Validate
-  if (!cfg.anthropic) { toast('Please configure your API key in Settings'); return; }
+  if (!cfg.openai) { toast('Please configure your OpenAI key in Settings'); return; }
 
   const userName = document.getElementById('userName').value.trim();
   const contactName = document.getElementById('contactName').value.trim();
@@ -866,7 +859,6 @@ async function runPipeline() {
     if (!notesText) { toast('Please enter your meeting notes'); return; }
   } else {
     if (!file) { toast('Please upload a recording'); return; }
-    if (!cfg.openai) { toast('OpenAI key needed for transcription — check Settings'); return; }
   }
 
   // Store meeting info for email
@@ -985,7 +977,7 @@ async function transcribe(f) {
 }
 
 /* ────────────────────────────────────────────
-   Analyze with Claude
+   Analyze with OpenAI GPT
 ──────────────────────────────────────────── */
 async function analyze(notes, info) {
   const prompt = `You are a professional meeting analyst for a B2B cannabis industry event called Interchange.
@@ -1017,16 +1009,14 @@ Guidelines:
 - Action items: specific, actionable, with responsible person noted
 - Email: warm, professional, concise — suitable for a B2B follow-up`;
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': cfg.anthropic,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
+      'Authorization': 'Bearer ' + cfg.openai
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      model: 'gpt-4o',
       max_tokens: 2000,
       messages: [{ role: 'user', content: prompt }]
     })
@@ -1039,7 +1029,7 @@ Guidelines:
   }
 
   const data = await res.json();
-  const text = data.content.map(b => b.text || '').join('');
+  const text = data.choices[0]?.message?.content || '';
   const match = text.match(/\{[\s\S]*\}/);
   if (!match) throw new Error('Could not parse response. Please try again.');
   try { return JSON.parse(match[0]); }
